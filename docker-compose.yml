@@ -1,0 +1,56 @@
+services:
+  sftp:
+    image: atmoz/sftp
+    container_name: sftp-server
+    ports:
+      - "2222:22"
+    volumes:
+      - sftp_data:/home/sftpuser/s3-root
+      - ./docker/sftp-init.sh:/etc/sftp.d/init.sh:ro # The SFTP writable root is initialized at container startup via a read‑only init script mounted under /etc/sftp.d.
+    command: sftpuser:password:1001
+
+  s3api:
+    build: .
+    container_name: s3-mvp
+    environment:
+      MVP_VERSION: ${MVP_VERSION:-2.0}
+    ports:
+      - "9000:9000"
+    depends_on:
+      - sftp
+    volumes:
+      - ./config.json:/app/config.json
+
+  awscli:
+    image: amazon/aws-cli:latest
+    environment: &cli-common-env
+      - AWS_ACCESS_KEY_ID=ACCESSKEY123
+      - AWS_SECRET_ACCESS_KEY=SECRETKEY123
+      - AWS_DEFAULT_REGION=us-east-1
+      - AWS_SSL_VERIFY="false"
+      - AWS_ENDPOINT_URL=http://s3api:9000
+      - AWS_EC2_METADATA_DISABLED=true
+    volumes:
+      - "./data:/data" # Mount current directory for cp command convenience
+    entrypoint: [""]
+    profiles: ["manual"]  # won't start unless explicitly invoked
+  
+  mc:
+    image: minio/mc:latest
+    environment: *cli-common-env
+    volumes:
+      - "./data:/data" # Mount current directory for mc cp convinience
+      - "./mc-config:/root/.mc"
+    entrypoint: [""]
+    profiles: ["manual"]
+
+  boto3:
+    build: ./tests
+    volumes:
+      - "./data:/data"
+      - "./tests:/app"
+    command: "pytest -v /app/test_s3_boto3.py"
+    environment: *cli-common-env
+
+volumes:
+  sftp_data:
