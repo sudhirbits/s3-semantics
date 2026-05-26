@@ -251,14 +251,6 @@ class SFTPBackend:
 
     def list_objects(self, bucket):
         with self._sftp() as sftp:
-            files = sftp.listdir(self._bucket_path(bucket))
-            return [
-                f for f in files 
-                if not is_internal_file(f)
-            ]
-
-    def list_objects(self, bucket):
-        with self._sftp() as sftp:
             base = self._bucket_path(bucket)
             result = []
 
