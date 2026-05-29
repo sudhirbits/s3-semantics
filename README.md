@@ -60,6 +60,23 @@ rm ./data/*.bin
 
 ***
 
+## 🧪 Running Unit Tests
+
+Use the `unittest` Docker Compose service to run the repository tests inside the Python container.
+
+From the repo root:
+
+```bash
+docker compose run --rm --build unittest
+
+# verbose 
+docker compose run --rm --build unittest -v
+
+# specific tests only 
+docker compose run --rm --build unittest discover -s /app/utils -p 'test_*.py'
+```
+***
+
 ## 🔄 Version Progression
 
 * **V1** – Protocol correctness (API shape, responses)  

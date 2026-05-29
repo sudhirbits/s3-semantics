@@ -52,5 +52,13 @@ services:
     command: "pytest -v /app/test_s3_boto3.py"
     environment: *cli-common-env
 
+  unittest:
+    build: 
+      context: .
+      dockerfile: Dockerfile.unittest
+    volumes:
+      - "./data:/data"
+    environment: *cli-common-env
+
 volumes:
   sftp_data:
