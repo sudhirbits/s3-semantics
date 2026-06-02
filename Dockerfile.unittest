@@ -2,10 +2,18 @@ FROM python:slim
 
 WORKDIR /app
 
+# Avoid writing .pyc files and enable unbuffered output
+ENV PYTHONDONTWRITEBYTECODE=1 \
+    PYTHONUNBUFFERED=1
+
+# Install dependencies first for better layer caching
 COPY requirements.txt .
 
-RUN pip install --no-cache-dir --trusted-host pypi.org --trusted-host files.pythonhosted.org --trusted-host pypi.python.org -r requirements.txt coverage
+RUN pip install --no-cache-dir \
+    -r requirements.txt
 
-COPY utils/ ./utils/
+# Copy application code
+COPY utils/ utils/
+COPY *.py test_*.py ./
 
-ENTRYPOINT [ "python", "-m", "unittest" ]
+ENTRYPOINT ["python", "-m", "unittest"]
